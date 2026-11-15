@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>KPSS İlan Takip · Yönetim</title>
+  <link rel="icon" href="icon.png" />
+  <style>
+    :root {
+      --red: #c8102e; --red-deep: #a30d25; --red-wash: #fbe9ec;
+      --ground: #f1f2f4; --surface: #fff; --ink: #1b1d21; --sub: #5a5f69; --faint: #767b85; --rule: #dfe1e5;
+      --green: #1e7b46; --amber: #8a5a00; --amber-wash: #fff4db; --blue: #1f4e8c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    ::selection { background: var(--red-wash); }
+    header { background: var(--red); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 14px; }
+    header h1 { font-size: 20px; margin: 0; flex: 1; }
+    header small { color: #f6d3d9; display: block; font-weight: 400; font-size: 13px; }
+    header .who { font-size: 14px; color: #f6d3d9; }
+    main { max-width: 1180px; margin: 0 auto; padding: 20px 16px 60px; }
+    section { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 20px; }
+    section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--sub); margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+    .pad { padding: 16px 18px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .stat { padding: 14px 18px; border-right: 1px solid var(--rule); }
+    .stat b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--sub); font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    th { font-size: 12px; color: var(--sub); text-transform: uppercase; letter-spacing: .03em; cursor: pointer; user-select: none; background: #fafafb; position: sticky; top: 0; }
+    td .sub { color: var(--faint); font-size: 13px; }
+    .tag { display: inline-block; border: 1px solid var(--blue); color: var(--blue); border-radius: 2px; padding: 0 6px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
+    .tag.old { border-color: var(--amber); color: var(--amber); }
+    .tag.blocked { border-color: var(--red); color: var(--red); }
+    .tablewrap { max-height: 560px; overflow: auto; }
+    input, textarea, select { font: inherit; border: 1px solid var(--rule); border-radius: 4px; padding: 9px 10px; width: 100%; background: #fff; color: var(--ink); }
+    input:focus, textarea:focus { outline: 2px solid var(--red); outline-offset: -1px; }
+    textarea { min-height: 90px; resize: vertical; }
+    label { display: block; font-size: 13px; color: var(--sub); font-weight: 600; margin-bottom: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink); font-weight: 500; }
+    .check input { width: auto; }
+    button { font: inherit; font-weight: 700; border-radius: 4px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--red); background: var(--red); color: #fff; }
+    button.ghost { background: #fff; color: var(--red); }
+    button:disabled { opacity: .5; cursor: default; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .msg { padding: 10px 14px; border-radius: 4px; background: var(--amber-wash); color: var(--amber); margin: 0 0 14px; }
+    .ok { background: #e6f3eb; color: var(--green); }
+    .center { max-width: 460px; margin: 80px auto; text-align: center; }
+    .hint { color: var(--faint); font-size: 13px; margin-top: 4px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>KPSS İlan Takip <small>Yönetim paneli · AkyazDev</small></h1>
+    <span class="who" id="who"></span>
+    <button class="ghost" id="signout" hidden>Çıkış</button>
+  </header>
+
+  <div id="login" class="center" hidden>
+    <section class="pad">
+      <h2 style="font-size:20px;text-transform:none;letter-spacing:0;color:var(--ink);border:0;padding:0 0 8px">Yönetici girişi</h2>
+      <p style="color:var(--sub)">Yönetici olarak tanımlı Google hesabınızla giriş yapın.</p>
+      <p class="msg" id="loginMsg" hidden></p>
+      <button id="signin">Google ile giriş yap</button>
+    </section>
+  </div>
+
+  <main id="app" hidden>
+    <section>
+      <h2>Özet</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section>
+      <h2>Sürüm ve zorunlu güncelleme <span id="cfgState"></span></h2>
+      <div class="pad">
+        <p class="msg" id="cfgMsg" hidden></p>
+        <div class="grid">
+          <div><label for="latestBuild">Mağazadaki son sürüm (build)</label><input id="latestBuild" type="number" min="0" /><div class="hint">Android versionCode. Bunun altındakiler “yeni sürüm var” uyarısı görür.</div></div>
+          <div><label for="minBuild">En düşük geçerli sürüm (build)</label><input id="minBuild" type="number" min="0" /><div class="hint">Bunun altındaki sürümler uygulamayı kullanamaz, güncellemeye yönlendirilir.</div></div>
+          <div><label for="blockedBuilds">Geçersiz sürümler</label><input id="blockedBuilds" placeholder="ör. 3, 5" /><div class="hint">Virgülle ayırın. Bu build’ler engellenir.</div></div>
+        </div>
+        <div style="margin-top:14px" class="check"><input type="checkbox" id="forceUpdate" /><label for="forceUpdate" class="check" style="margin:0">Son sürümün altındaki herkesi güncellemeye zorla</label></div>
+        <div class="grid" style="margin-top:14px">
+          <div><label for="updateTitle">Güncelleme başlığı</label><input id="updateTitle" /></div>
+          <div><label for="storeUrlAndroid">Google Play bağlantısı</label><input id="storeUrlAndroid" /></div>
+          <div><label for="storeUrlIos">App Store bağlantısı</label><input id="storeUrlIos" /></div>
+          <div><label for="privacyUrl">Gizlilik / aydınlatma metni bağlantısı</label><input id="privacyUrl" /></div>
+        </div>
+        <div style="margin-top:14px"><label for="updateMessage">Güncelleme mesajı</label><textarea id="updateMessage"></textarea></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Zorunlu duyuru</h2>
+      <div class="pad">
+        <div class="check"><input type="checkbox" id="noticeActive" /><label for="noticeActive" class="check" style="margin:0">Duyuru yayında (kullanıcı “Okudum” diyene kadar uygulamada gösterilir)</label></div>
+        <div class="grid" style="margin-top:14px">
+          <div><label for="noticeTitle">Başlık</label><input id="noticeTitle" /></div>
+          <div><label for="noticeUrl">Bağlantı (isteğe bağlı)</label><input id="noticeUrl" placeholder="https://" /></div>
+        </div>
+        <div style="margin-top:14px"><label for="noticeMessage">Mesaj</label><textarea id="noticeMessage"></textarea></div>
+        <div class="hint">Mesajı değiştirip kaydettiğinizde herkese yeniden gösterilir.</div>
+      </div>
+    </section>
+    <div class="row" style="margin:-6px 0 20px"><button id="save">Ayarları kaydet</button><span id="saveState" class="hint"></span></div>
+
+    <section>
+      <h2>Kullanıcılar <span class="row"><input id="q" placeholder="Ad, e-posta veya sürüm ara" style="width:260px;text-transform:none" /><button class="ghost" id="csv">CSV indir</button></span></h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th data-k="name">Kullanıcı</th><th data-k="appBuild">Sürüm</th><th data-k="versions">Kullandığı sürümler</th>
+            <th data-k="deviceModel">Cihaz</th><th data-k="firstSeenAt">İlk giriş</th><th data-k="lastSeenAt">Son görülme</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

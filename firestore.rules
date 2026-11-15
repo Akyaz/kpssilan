@@ -1,0 +1,40 @@
+rules_version = '2';
+// KPSS İlan Takip — Firestore security rules.
+// Deploy: Firebase console > Firestore > Rules (paste) or `firebase deploy --only firestore:rules`.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins are listed as documents admins/{email} (create them in the console).
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+
+    // Remote config read by every app (also before sign-in); edited from the panel.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // One document per signed-in user; the app may only write its own.
+    match /users/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.keys().hasOnly([
+             'uid', 'email', 'name', 'photoURL', 'platform', 'osVersion', 'deviceModel',
+             'appVersion', 'appBuild', 'appId', 'lastSeenAt', 'versions',
+             'firstSeenAt', 'firstSeenByBuild'
+           ]);
+      allow delete: if isAdmin();
+    }
+
+    // Admin list: an admin can see that they are one; nobody writes from clients.
+    match /admins/{email} {
+      allow read: if request.auth != null && request.auth.token.email == email;
+      allow write: if false;
+    }
+  }
+}
