@@ -71,11 +71,6 @@
 
   <main id="app" hidden>
     <section>
-      <h2>Özet</h2>
-      <div class="stats" id="stats"></div>
-    </section>
-
-    <section>
       <h2>Sürüm ve zorunlu güncelleme <span id="cfgState"></span></h2>
       <div class="pad">
         <p class="msg" id="cfgMsg" hidden></p>
@@ -109,18 +104,6 @@
     </section>
     <div class="row" style="margin:-6px 0 20px"><button id="save">Ayarları kaydet</button><span id="saveState" class="hint"></span></div>
 
-    <section>
-      <h2>Kullanıcılar <span class="row"><input id="q" placeholder="Ad, e-posta veya sürüm ara" style="width:260px;text-transform:none" /><button class="ghost" id="csv">CSV indir</button></span></h2>
-      <div class="tablewrap">
-        <table>
-          <thead><tr>
-            <th data-k="name">Kullanıcı</th><th data-k="appBuild">Sürüm</th><th data-k="versions">Kullandığı sürümler</th>
-            <th data-k="deviceModel">Cihaz</th><th data-k="firstSeenAt">İlk giriş</th><th data-k="lastSeenAt">Son görülme</th>
-          </tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-    </section>
   </main>
 
   <script type="module" src="app.js"></script>

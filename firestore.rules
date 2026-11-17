@@ -17,19 +17,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // One document per signed-in user; the app may only write its own.
-    match /users/{uid} {
-      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
-      allow create, update: if request.auth != null
-        && request.auth.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.keys().hasOnly([
-             'uid', 'email', 'name', 'photoURL', 'platform', 'osVersion', 'deviceModel',
-             'appVersion', 'appBuild', 'appId', 'lastSeenAt', 'versions',
-             'firstSeenAt', 'firstSeenByBuild'
-           ]);
-      allow delete: if isAdmin();
-    }
+    // The app stores no user data. Anything not matched above is denied.
 
     // Admin list: an admin can see that they are one; nobody writes from clients.
     match /admins/{email} {
